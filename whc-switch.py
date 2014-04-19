@@ -1,5 +1,5 @@
 # Import the modules
-import RPi.GPIO as gpio
+import RPi.GPIO as GPIO
 from time import sleep
 from os import system
 import sys
@@ -12,6 +12,8 @@ fpin = 7
 # The first argument of the script should be the network device to manage
 device = sys.argv[1]
 
+# Register the state (0: client, 1: host)
+
 # Define a function to keep script running
 def loop():
   while True:
@@ -20,11 +22,13 @@ def loop():
 # This function set the network depending on the switch state    
 def set_network(ping=fpin):
   # If switch is on
-  if gpio.input(fpin):
+  if GPIO.input(fpin) and !state:
     set_host()
+    state = 1
   # If switch is off
-  else:
+  elif !GPIO.input(fpin) and state:
     set_client()
+    state = 0
  
 # Set the access point (AP with hostapd) and start gmediarender
 def set_host(pin=fpin):
@@ -35,10 +39,10 @@ def set_host(pin=fpin):
   system('ip addr add 10.0.0.1/24 dev ' + device)
   system('systemctl start dhcpd4')
   system('systemctl start hostapd')
-  system('systemctl start gmediarender')
 
 # Connect to an available network  
 def set_client(pin=fpin):
+  #state = subprocess.Popen('systemctl status netctl-auto@' + device + ' | grep Active: | cut -d":" -f2 | cut -d"(" -f1', shell=True, stdout=subprocess.PIPE).stdout.read().strip()
   print('')
   reset_host()
   print('Setting client')
@@ -47,7 +51,6 @@ def set_client(pin=fpin):
 # Reset the access point and stop gmediarender  
 def reset_host(pin=fpin):
   print('Resetting host')
-  system('systemctl stop gmediarender')
   system('systemctl stop hostapd')
   system('systemctl stop dhcpd4')
   system('ip addr flush dev ' + device)
@@ -63,9 +66,9 @@ def reset_client(pin=fpin):
 print("Setting GPIO...")
 
 # Set pin numbering to board numbering
-gpio.setmode(gpio.BOARD)
+GPIO.setmode(GPIO.BOARD)
 # Set up pin 7 as an input with pull-up resistor
-gpio.setup(fpin, gpio.IN, pull_up_down=gpio.PUD_UP)
+GPIO.setup(fpin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 print("Setting wifi accordingly to original state")
 
@@ -74,7 +77,7 @@ set_network();
 print("Setting interrupt...")
 
 # Add event on rising and falling edge
-gpio.add_event_detect(fpin, gpio.RISING, callback=set_network, bouncetime=200)
+GPIO.add_event_detect(fpin, GPIO.RISING, callback=set_network, bouncetime=200)
 
 # Run the loop function to keep script running 
 loop() 
