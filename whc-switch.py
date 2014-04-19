@@ -28,7 +28,7 @@ def set_network():
     set_client()
  
 # Set the access point (AP with hostapd) and start gmediarender
-def set_host(pin):
+def set_host(pin=spin):
   print('')
   reset_client()
   print('Setting host')
@@ -39,14 +39,14 @@ def set_host(pin):
   system('systemctl start gmediarender')
 
 # Connect to an available network  
-def set_client(pin):
+def set_client(pin=fpin):
   print('')
   reset_host()
   print('Setting client')
   system('systemctl start netctl-auto@' + device)
 
 # Reset the access point and stop gmediarender  
-def reset_host(pin):
+def reset_host(pin=spin):
   print('Resetting host')
   system('systemctl stop gmediarender')
   system('systemctl stop hostapd')
@@ -55,7 +55,7 @@ def reset_host(pin):
   system('ip link set down dev ' + device)
 
 # Disconnect from the network  
-def reset_client(pin):
+def reset_client(pin=fpin):
   print('Resetting client')
   system('systemctl stop netctl-auto@' + device)
   system('ip addr flush dev ' + device)
