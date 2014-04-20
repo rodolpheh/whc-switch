@@ -13,6 +13,7 @@ fpin = 7
 device = sys.argv[1]
 
 # Register the state (0: client, 1: host)
+state = 0
 
 # Define a function to keep script running
 def loop():
@@ -20,13 +21,13 @@ def loop():
     sleep(600)
 
 # This function set the network depending on the switch state    
-def set_network(ping=fpin):
+def set_network(pin=fpin):
   # If switch is on
-  if GPIO.input(fpin) and !state:
+  if not GPIO.input(fpin) and not state:
     set_host()
     state = 1
   # If switch is off
-  elif !GPIO.input(fpin) and state:
+  elif GPIO.input(fpin) and state:
     set_client()
     state = 0
  
@@ -62,6 +63,9 @@ def reset_client(pin=fpin):
   system('systemctl stop netctl-auto@' + device)
   system('ip addr flush dev ' + device)
   system('ip link set down dev ' + device)
+  
+def get_state():
+  state = 0 if GPIO.input(fpin) else 1
 
 print("Setting GPIO...")
 
@@ -72,6 +76,7 @@ GPIO.setup(fpin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 print("Setting wifi accordingly to original state")
 
+get_state();
 set_network();
 
 print("Setting interrupt...")
