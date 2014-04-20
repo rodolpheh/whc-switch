@@ -22,6 +22,7 @@ def loop():
 
 # This function set the network depending on the switch state    
 def set_network(pin=fpin):
+  global state
   # If switch is on
   if not GPIO.input(fpin) and not state:
     set_host()
@@ -43,7 +44,6 @@ def set_host(pin=fpin):
 
 # Connect to an available network  
 def set_client(pin=fpin):
-  #state = subprocess.Popen('systemctl status netctl-auto@' + device + ' | grep Active: | cut -d":" -f2 | cut -d"(" -f1', shell=True, stdout=subprocess.PIPE).stdout.read().strip()
   print('')
   reset_host()
   print('Setting client')
@@ -66,6 +66,7 @@ def reset_client(pin=fpin):
   
 def get_state():
   state = 0 if GPIO.input(fpin) else 1
+  return state
 
 print("Setting GPIO...")
 
@@ -76,8 +77,8 @@ GPIO.setup(fpin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 print("Setting wifi accordingly to original state")
 
-get_state();
-set_network();
+state = GPIO.input(fpin)
+set_network()
 
 print("Setting interrupt...")
 
