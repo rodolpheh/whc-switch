@@ -20,16 +20,14 @@ state = 0
 
 # Define a function to keep script running
 def loop():
-  if state:
-    while True:
-      GPIO.output(blue_led, GPIO.HIGH)
-      sleep(600)
-  else:
-    while True:
+  while True:
+    while !state:
       sleep(1)
       GPIO.output(blue_led, not GPIO.input(blue_led))
+    while state:
+      sleep(1)
+      GPIO.output(blue_led, GPIO.HIGH)
       
-
 # This function set the network depending on the switch state    
 def set_network(pin=fpin):
   global state
@@ -53,12 +51,12 @@ def set_host(pin=fpin):
   system('ip addr add 10.0.0.1/24 dev ' + device)
   
   system('systemctl start dhcpd4')
-  if !check_service('dhcpd4'):
+  if not check_service('dhcpd4'):
     reset_host()
     return None
   
   system('systemctl start hostapd')
-  if !check_service('hostapd'):
+  if not check_service('hostapd'):
     reset_host()
     return None
   
