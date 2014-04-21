@@ -126,13 +126,9 @@ GPIO.setup(blue_led, GPIO.OUT)
 GPIO.setup(red_led, GPIO.OUT)
 
 # First setting of wifi
-print("Setting wifi accordingly to original state")
+print("Setting wifi accordingly to original state and interrupt")
 state = GPIO.input(spin)
 set_network()
-
-# Add event on rising and falling edge
-print("Setting interrupt...")
-GPIO.add_event_detect(spin, GPIO.RISING, callback=set_network, bouncetime=200)
 
 # Run the loop function to keep script running 
 loop() 
