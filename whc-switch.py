@@ -30,6 +30,7 @@ def loop():
       
 # This function set the network depending on the switch state    
 def set_network(pin=spin):
+  GPIO.remove_event_detect(spin)
   
   # Light off the blue led
   GPIO.output(blue_led, GPIO.LOW)
@@ -45,6 +46,8 @@ def set_network(pin=spin):
   # If switch is off
   elif GPIO.input(spin) and state:
     set_client()
+    
+  GPIO.add_event_detect(spin, GPIO.RISING, callback=set_network, bouncetime=200)
  
 # Set the access point (AP with hostapd) and start gmediarender
 def set_host(pin=spin):
