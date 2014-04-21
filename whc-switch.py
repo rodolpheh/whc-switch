@@ -23,6 +23,8 @@ def loop():
 # This function set the network depending on the switch state    
 def set_network(pin=fpin):
   global state
+  print('\nSwitch state has changed')
+  print('Switch state: ' + GPIO.input(fpin) + ' ; Software state: ' + state)
   # If switch is on
   if not GPIO.input(fpin) and not state:
     set_host()
@@ -41,6 +43,7 @@ def set_host(pin=fpin):
   system('ip addr add 10.0.0.1/24 dev ' + device)
   system('systemctl start dhcpd4')
   system('systemctl start hostapd')
+  print('Host set')
 
 # Connect to an available network  
 def set_client(pin=fpin):
@@ -48,6 +51,7 @@ def set_client(pin=fpin):
   reset_host()
   print('Setting client')
   system('systemctl start netctl-auto@' + device)
+  print('Client set')
 
 # Reset the access point and stop gmediarender  
 def reset_host(pin=fpin):
