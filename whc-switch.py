@@ -3,11 +3,14 @@ import RPi.GPIO as GPIO
 from time import sleep
 from os import system
 import sys
+import subprocess
 
 # Pin where the switch is connected.
 # The switch should be connected between a GPIO and the ground.  
 # GPIO __/ __ GND
 fpin = 7
+blue_led = 11
+red_led = 12
 
 # The first argument of the script should be the network device to manage
 device = sys.argv[1]
@@ -17,8 +20,15 @@ state = 0
 
 # Define a function to keep script running
 def loop():
-  while True:
-    sleep(600)
+  if state:
+    while True:
+      GPIO.output(blue_led, GPIO.HIGH)
+      sleep(600)
+  else:
+    while True:
+      sleep(1)
+      GPIO.output(blue_led, not GPIO.input(blue_led))
+      
 
 # This function set the network depending on the switch state    
 def set_network(pin=fpin):
@@ -41,8 +51,17 @@ def set_host(pin=fpin):
   print('Setting host')
   system('ip link set up dev ' + device)
   system('ip addr add 10.0.0.1/24 dev ' + device)
+  
   system('systemctl start dhcpd4')
+  if !check_service('dhcpd4'):
+    reset_host()
+    return None
+  
   system('systemctl start hostapd')
+  if !check_service('hostapd'):
+    reset_host()
+    return None
+  
   print('Host set')
 
 # Connect to an available network  
@@ -51,7 +70,8 @@ def set_client(pin=fpin):
   reset_host()
   print('Setting client')
   system('systemctl start netctl-auto@' + device)
-  print('Client set')
+  if check_service('netctl-auto@' + device):
+    print('Client set')
 
 # Reset the access point and stop gmediarender  
 def reset_host(pin=fpin):
@@ -72,12 +92,27 @@ def get_state():
   state = 0 if GPIO.input(fpin) else 1
   return state
 
+def check_service(service):
+  # Check if service is started
+  out = subprocess.Popen('systemctl status ' + service + ' | grep Active: | cut -d":" -f2 | cut -d"(" -f1', stdout=subprocess.PIPE, shell=True).communicate()[0].strip()
+  if out == "inactive":
+    GPIO.output(red_led, GPIO.HIGH)
+    print('Error on service ' + service + ', check the systemd journal!')
+    return 0
+  elif out == "active":
+    GPIO.output(red_led, GPIO.LOW)
+    print('Service ' + service + ' is active!')
+    return 1
+
 print("Setting GPIO...")
 
 # Set pin numbering to board numbering
 GPIO.setmode(GPIO.BOARD)
 # Set up pin 7 as an input with pull-up resistor
 GPIO.setup(fpin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+# Set up outputs
+GPIO.setup(blue_led, GPIO.OUT)
+GPIO.setup(red_led, GPIO.OUT)
 
 print("Setting wifi accordingly to original state")
 
