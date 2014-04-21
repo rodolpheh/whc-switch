@@ -32,10 +32,6 @@ def loop():
 def set_network(pin=spin):
   GPIO.remove_event_detect(spin)
   
-  # Light off the blue led
-  GPIO.output(blue_led, GPIO.LOW)
-  
-  global state
   print('\nSwitch state has changed')
   print('Switch state: ' + str(GPIO.input(spin)) + ' ; Software state: ' + str(state))
   
@@ -51,13 +47,18 @@ def set_network(pin=spin):
  
 # Set the access point (AP with hostapd) and start gmediarender
 def set_host(pin=spin):
+  global state
   print('')
+  
   reset_client()
+  state = 1
+  
   print('Setting host')
+  
   system('ip link set up dev ' + device)
   system('ip addr add 10.0.0.1/24 dev ' + device)
-  
   system('systemctl start dhcpd4')
+  
   if not check_service('dhcpd4'):
     reset_host()
     return None
@@ -68,21 +69,27 @@ def set_host(pin=spin):
     return None
   
   print('Host set')
-  state = 1
+  
 
 # Connect to an available network  
 def set_client(pin=spin):
+  global state
   print('')
+  
   reset_host()
+  state = 0
+  
   print('Setting client')
+  
   system('systemctl start netctl-auto@' + device)
+  
   if check_service('netctl-auto@' + device):
     print('Client set')
-    state = 0
 
 # Reset the access point and stop gmediarender  
 def reset_host(pin=spin):
   print('Resetting host')
+  
   system('systemctl stop hostapd')
   system('systemctl stop dhcpd4')
   system('ip addr flush dev ' + device)
@@ -91,13 +98,10 @@ def reset_host(pin=spin):
 # Disconnect from the network  
 def reset_client(pin=spin):
   print('Resetting client')
+  
   system('systemctl stop netctl-auto@' + device)
   system('ip addr flush dev ' + device)
   system('ip link set down dev ' + device)
-  
-def get_state():
-  state = 0 if GPIO.input(spin) else 1
-  return state
 
 def check_service(service):
   
