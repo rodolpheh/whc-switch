@@ -24,7 +24,7 @@ def loop():
 def set_network(pin=fpin):
   global state
   print('\nSwitch state has changed')
-  print('Switch state: ' + GPIO.input(fpin) + ' ; Software state: ' + state)
+  print('Switch state: ' + str(GPIO.input(fpin)) + ' ; Software state: ' + str(state))
   # If switch is on
   if not GPIO.input(fpin) and not state:
     set_host()
