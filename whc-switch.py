@@ -85,8 +85,6 @@ def set_client(pin=spin):
   
   print('Setting client')
   
-  system('systemctl start netctl-auto@' + device)
-  
   if (not start_services(['netctl-auto@' + device]) or not start_services(services_client) or not restart_services(services_both)) and stop_on_error:
     state = 1
     reset_client()
