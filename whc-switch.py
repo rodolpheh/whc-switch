@@ -32,11 +32,14 @@ def loop():
     while not state:
       sleep(1)
       GPIO.output(blue_led, GPIO.HIGH)
+    while state == -1:
+      sleep(1)
 
       
 # This function set the network depending on the switch state    
 def set_network(pin=spin):
   GPIO.remove_event_detect(spin)
+  state = -1
   
   print('\nSwitch state has changed')
   print('Switch state: ' + str(GPIO.input(spin)) + ' ; Software state: ' + str(state))
@@ -58,31 +61,18 @@ def set_host(pin=spin):
   print('')
   
   reset_client()
-  state = 1
   
   print('Setting host')
   
   system('ip link set up dev ' + device)
   system('ip addr add 10.0.0.1/24 dev ' + device)
   
-  system('systemctl start dhcpd4')
-  if not check_service('dhcpd4') and stop_on_error:
+  if (not start_services(['dhcpd4','hostapd']) or not start_services(services_host) or not restart_services(services_both)) and stop_on_error:
+    state = 0
     reset_host()
     return None
   
-  system('systemctl start hostapd')
-  if not check_service('hostapd') and stop_on_error:
-    reset_host()
-    return None
-  
-  if not start_services(services_host) and stop_on_error:
-    reset_host()
-    return None
-  
-  if not restart_services(services_both) and stop_on_error:
-    reset_host()
-    return None
-  
+  state = 1
   print('Host set')
 
 
@@ -92,24 +82,17 @@ def set_client(pin=spin):
   print('')
   
   reset_host()
-  state = 0
   
   print('Setting client')
   
   system('systemctl start netctl-auto@' + device)
   
-  if not check_service('netctl-auto@' + device):
-    reset_client()
-    return None
-
-  if not start_services(services_client) and stop_on_error:
+  if (not start_services(['netctl-auto@' + device]) or not start_services(services_client) or not restart_services(services_both)) and stop_on_error:
+    state = 1
     reset_client()
     return None
   
-  if not restart_services(services_both) and stop_on_error:
-    reset_client()
-    return None
-  
+  state = 0
   print('Client set')
 
 
@@ -117,8 +100,7 @@ def set_client(pin=spin):
 def reset_host(pin=spin):
   print('Resetting host')
   stop_services(services_host)
-  system('systemctl stop hostapd')
-  system('systemctl stop dhcpd4')
+  stop_services(['hostapd','dhcpd4'])
   system('ip addr flush dev ' + device)
   system('ip link set down dev ' + device)
 
@@ -127,7 +109,7 @@ def reset_host(pin=spin):
 def reset_client(pin=spin):
   print('Resetting client')
   stop_services(services_client)
-  system('systemctl stop netctl-auto@' + device)
+  stop_services(['netctl-auto@' + device])
   system('ip addr flush dev ' + device)
   system('ip link set down dev ' + device)
 
@@ -162,40 +144,24 @@ def ConfigSectionMap(section):
 
 
 def start_services(services):
-  
   for service in services:
-    if not service:
-      return 1
-    
+    if not service:return 1
     system('systemctl start ' + service)
-    
-    if not check_service(service):
-      return 0
-    else:
-      return 1
+    return 0 if not check_service(service) else 1
     
 
 def stop_services(services):
-  
   for service in services:
-    if not service:
-      return 1
-    
+    if not service: return 1
     system('systemctl stop ' + service)
     
 
-def reset_services(services):
-  
+def restart_services(services):
   for service in services:
-    if not service:
-      return 1
-    
+    if not service:return 1
     system('systemctl restart ' + service)
-    
-    if not check_service(service):
-      return 0
-    else:
-      return 1
+    return 0 if not check_service(service) else 1
+
 
 print("Parsing configuration file...\n")
 
