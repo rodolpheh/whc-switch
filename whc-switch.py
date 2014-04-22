@@ -75,11 +75,11 @@ def set_host(pin=spin):
     reset_host()
     return None
   
-  if not start_services('host') and stop_on_error:
+  if not start_services(services_host) and stop_on_error:
     reset_host()
     return None
   
-  if not restart_services('both') and stop_on_error:
+  if not restart_services(services_both) and stop_on_error:
     reset_host()
     return None
   
@@ -102,11 +102,11 @@ def set_client(pin=spin):
     reset_client()
     return None
 
-  if not start_services('client') and stop_on_error:
+  if not start_services(services_client) and stop_on_error:
     reset_client()
     return None
   
-  if not restart_services('both') and stop_on_error:
+  if not restart_services(services_both) and stop_on_error:
     reset_client()
     return None
   
@@ -116,7 +116,7 @@ def set_client(pin=spin):
 # Reset the access point and stop gmediarender  
 def reset_host(pin=spin):
   print('Resetting host')
-  stop_services('host')
+  stop_services(services_host)
   system('systemctl stop hostapd')
   system('systemctl stop dhcpd4')
   system('ip addr flush dev ' + device)
@@ -126,7 +126,7 @@ def reset_host(pin=spin):
 # Disconnect from the network  
 def reset_client(pin=spin):
   print('Resetting client')
-  stop_services('client')
+  stop_services(services_client)
   system('systemctl stop netctl-auto@' + device)
   system('ip addr flush dev ' + device)
   system('ip link set down dev ' + device)
@@ -163,7 +163,7 @@ def ConfigSectionMap(section):
 
 def start_services(services):
   
-  for service in services.split(','):
+  for service in services:
     if not service:
       return 1
     
