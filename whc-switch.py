@@ -163,7 +163,10 @@ def ConfigSectionMap(section):
 
 def start_services(services):
   
-  for service in services:
+  for service in services.split(','):
+    if not service:
+      return 1
+    
     system('systemctl start ' + service)
     
     if not check_service(service):
@@ -175,12 +178,18 @@ def start_services(services):
 def stop_services(services):
   
   for service in services:
+    if not service:
+      return 1
+    
     system('systemctl stop ' + service)
     
 
 def reset_services(services):
   
   for service in services:
+    if not service:
+      return 1
+    
     system('systemctl restart ' + service)
     
     if not check_service(service):
@@ -225,7 +234,7 @@ else:
 print("\n== Script options: ==")
 
 whc_section = ConfigSectionMap('whc-switch')
-stop_on_error = int(services_section['stop_on_error'])
+stop_on_error = int(whc_section['stop_on_error'])
 
 if stop_on_error:
   print("- Stop on error enabled")
