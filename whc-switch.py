@@ -18,21 +18,21 @@ config_file = '/etc/whc-switch.conf'
 # The first argument of the script should be the network device to manage
 device = sys.argv[1]
 
-# Register the state (0: client, 1: host)
-state = 0
+# Register the state (0: client, 1: host, 2: switching)
+state = 2
 
 
 
 # Define a function to keep script running
 def loop():
   while True:
-    while state:
+    while state == 1:
       GPIO.output(blue_led, not GPIO.input(blue_led))
       sleep(1)
     while state == 0:
       GPIO.output(blue_led, GPIO.HIGH)
       sleep(1)
-    while state == -1:
+    while state == 2:
       GPIO.output(blue_led, GPIO.LOW)
       sleep(1)
 
@@ -47,12 +47,12 @@ def set_network(pin=spin):
   
   # If switch is on
   if not GPIO.input(spin) and not state:
-    state = -1
+    state = 2
     set_host()
     
   # If switch is off
   elif GPIO.input(spin) and state:
-    state = -1
+    state = 2
     set_client()
     
   GPIO.add_event_detect(spin, GPIO.RISING, callback=set_network, bouncetime=200)
