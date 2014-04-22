@@ -27,29 +27,32 @@ state = 0
 def loop():
   while True:
     while state:
-      sleep(1)
       GPIO.output(blue_led, not GPIO.input(blue_led))
-    while not state:
       sleep(1)
+    while not state:
       GPIO.output(blue_led, GPIO.HIGH)
+      sleep(1)
     while state == -1:
+      GPIO.output(blue_led, GPIO.LOW)
       sleep(1)
 
       
 # This function set the network depending on the switch state    
 def set_network(pin=spin):
   GPIO.remove_event_detect(spin)
-  state = -1
+  global state
   
   print('\nSwitch state has changed')
   print('Switch state: ' + str(GPIO.input(spin)) + ' ; Software state: ' + str(state))
   
   # If switch is on
   if not GPIO.input(spin) and not state:
+    state = -1
     set_host()
     
   # If switch is off
   elif GPIO.input(spin) and state:
+    state = -1
     set_client()
     
   GPIO.add_event_detect(spin, GPIO.RISING, callback=set_network, bouncetime=200)
