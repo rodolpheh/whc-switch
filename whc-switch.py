@@ -29,7 +29,7 @@ def loop():
     while state:
       GPIO.output(blue_led, not GPIO.input(blue_led))
       sleep(1)
-    while not state and not (state == -1):
+    while state == 0:
       GPIO.output(blue_led, GPIO.HIGH)
       sleep(1)
     while state == -1:
