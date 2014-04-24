@@ -70,7 +70,7 @@ def set_host(pin=spin):
   system('ip link set up dev ' + device)
   system('ip addr add 10.0.0.1/24 dev ' + device)
   
-  if (not start_services(['dhcpd4','hostapd']) or not start_services(services_host) or not restart_services(services_both)) and stop_on_error:
+  if (not start_services(['dhcpd4@' + device,'hostapd']) or not start_services(services_host) or not restart_services(services_both)) and stop_on_error:
     state = 0
     reset_host()
     return None
@@ -101,7 +101,7 @@ def set_client(pin=spin):
 def reset_host(pin=spin):
   print('Resetting host')
   stop_services(services_host)
-  stop_services(['hostapd','dhcpd4'])
+  stop_services(['hostapd','dhcpd4@' + device])
   system('ip addr flush dev ' + device)
   system('ip link set down dev ' + device)
 
