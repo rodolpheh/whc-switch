@@ -192,11 +192,19 @@ def ConfigSectionMap(section):
 # Arguments: services (array)
 # Return: 1 if array is empty or if everything has been started without any problems, 0 if a problem has occurred
 def start_services(services):
+  services_states = [None] * len(services)
+  index = 0
   for service in services:
     if not service:return 1
     system('systemctl start ' + service)
-    return 0 if not check_service(service) else 1
-    
+    services_states[index] = 0 if not check_service(service) else 1
+    index = index + 1
+  for service_state in services_states:
+    if not service_state:
+      return 0
+    else:
+      return 1
+
 
 # Stop services
 # Arguments: services (array)
@@ -211,10 +219,18 @@ def stop_services(services):
 # Arguments: services(array)
 # Return: 1 if array is empty or if everything has been restarted without any problems, 0 if a problem has occurred
 def restart_services(services):
+  services_states = [None] * len(services)
+  index = 0
   for service in services:
     if not service:return 1
     system('systemctl restart ' + service)
-    return 0 if not check_service(service) else 1
+    services_states[index] = 0 if not check_service(service) else 1
+    index = index + 1
+  for service_state in services_states:
+    if not service_state:
+      return 0
+    else:
+      return 1
 
 
 ## WE START HERE
